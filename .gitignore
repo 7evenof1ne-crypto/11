@@ -1,0 +1,6 @@
+# video-restyle working artifacts (per-project, regenerated)
+video_projects/
+
+# python
+__pycache__/
+*.pyc
