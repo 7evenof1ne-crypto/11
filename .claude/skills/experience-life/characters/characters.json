@@ -1,0 +1,16 @@
+{
+  "ahai": {
+    "name": "阿海 (male lead)",
+    "seed": 10137,
+    "appearance": "a Chinese man, oval face with defined jaw, short slightly messy black hair, thick straight eyebrows, calm tired single-eyelid eyes, faint dark circles, light stubble, straight nose, lean average build, plain look, relatable everyman",
+    "default_age": "early thirties",
+    "notes": "万能男主『你』。换装/换年龄复用：在分镜里改服装与年龄词（in his twenties / forties / fifties），保留这段长相描述与 seed 不变。"
+  },
+  "axia": {
+    "name": "小夏 (female lead)",
+    "seed": 20249,
+    "appearance": "a Chinese woman, soft oval face, shoulder-length straight black hair with side-swept bangs, gentle almond eyes with double eyelids, small nose, natural bare face no makeup, slender build, quiet warm expression, relatable everywoman",
+    "default_age": "late twenties",
+    "notes": "万能女主『你』。同样可换装/换年龄复用，保留长相描述与 seed。"
+  }
+}

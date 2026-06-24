@@ -111,6 +111,51 @@ Work inside `video_projects/<slug>/` (gitignored).
    Then surface `final.mp4`. Vertical variant: `--size 1080x1920` (and render
    images at a portrait size to match).
 
+## Character bible — account-exclusive recurring cast
+
+To make every video star the SAME people (a personal-account identity), this
+skill keeps a locked cast in `characters/characters.json`. Each character has:
+- a **locked appearance fragment** (very specific face/hair/build), reused
+  verbatim so the text-to-image model keeps drawing the same person;
+- a **locked seed** so that description renders the same face every time.
+
+Current cast (style: muted grey-blue manhua):
+- `ahai` 阿海 — male lead / everyman "你".
+- `axia` 小夏 — female lead / everywoman "你".
+
+Approved reference sheets live next to the JSON (`ahai_sheet.jpg`,
+`axia_sheet.jpg`). The same locked face re-ages and re-costumes across a whole
+lifetime — only change the age/clothing words in the scene prompt.
+
+**Use the cast in an episode:** in `scenes.json`, set the primary character and
+reference it with an `@id` token; gen_images.py injects the locked appearance
+and pins that character's seed:
+```json
+{ "prompt": "@ahai in his twenties, in an orange diving suit on a ship deck",
+  "char": "ahai", "end_cue": 5 }
+```
+```bash
+python3 .claude/skills/experience-life/scripts/gen_images.py \
+    --srt narration.srt --scenes scenes.json \
+    --characters .claude/skills/experience-life/characters/characters.json \
+    --style "<the cast's style>" --size 1024x768 --out imgs/
+```
+- `"char": "<id>"` → uses that character's locked seed (face stays stable).
+- `@<id>` anywhere in a prompt → expands to the character's locked appearance.
+- Scenes with no `char` fall back to the `--seed` + variety behaviour.
+
+**Add / edit a character:** append to `characters.json` (give it a unique seed
+and a detailed appearance), then regenerate its sheet to approve the look:
+```bash
+python3 .claude/skills/experience-life/scripts/gen_characters.py \
+    --characters .claude/skills/experience-life/characters/characters.json \
+    --style "<the cast's style>" --only <id> \
+    --out .claude/skills/experience-life/characters/
+```
+Keep the STYLE string identical to the rest of the cast so they look like one
+world. The character bible is committed to the repo so it persists across the
+ephemeral web sessions.
+
 ## Tips
 
 - **Consistency** is the hard part of AI illustration. Lock the character with

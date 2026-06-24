@@ -82,6 +82,10 @@ def main():
     ap.add_argument("--srt", required=True)
     ap.add_argument("--scenes", required=True)
     ap.add_argument("--style", default=DEFAULT_STYLE)
+    ap.add_argument("--characters", default=None,
+                    help="character bible JSON; scenes may set \"char\":\"<id>\" "
+                         "to pin that character's locked seed, and use @<id> "
+                         "tokens in the prompt to inject its locked appearance")
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--size", default="1024x768")
     ap.add_argument("--out", required=True)
@@ -91,6 +95,7 @@ def main():
     os.makedirs(args.out, exist_ok=True)
     cues = parse_srt(args.srt)
     scenes = json.load(open(args.scenes, encoding="utf-8"))
+    chars = json.load(open(args.characters, encoding="utf-8")) if args.characters else {}
     end_audio = cues[-1][1]
 
     concat, prev_end = [], 0.0
@@ -99,9 +104,28 @@ def main():
         dur = max(0.3, scene_end - prev_end)
         prev_end = scene_end
         out = os.path.join(args.out, f"img_{i:02d}.jpg")
-        # per-scene seed offset keeps variety but stays deterministic
-        prompt = f"{args.style}. Scene: {sc['prompt']}"
-        ok = fetch(prompt, w, h, args.seed + i, out)
+
+        # inject any @<id> character tokens with their locked appearance
+        scene_text = sc["prompt"]
+        for cid, c in chars.items():
+            if f"@{cid}" in scene_text:
+                scene_text = scene_text.replace(
+                    f"@{cid}", f"the recurring character {c['name']} "
+                    f"(always the same person: {c['appearance']})")
+
+        # a scene's primary character pins the seed (face stays locked across
+        # the whole account); otherwise vary the seed per scene for variety
+        primary = sc.get("char")
+        if primary and primary in chars:
+            seed = chars[primary]["seed"]
+            if f"@{primary}" not in sc["prompt"]:  # ensure the lead is described
+                scene_text = (f"main character {chars[primary]['name']} "
+                              f"({chars[primary]['appearance']}). " + scene_text)
+        else:
+            seed = args.seed + i
+
+        prompt = f"{args.style}. Scene: {scene_text}"
+        ok = fetch(prompt, w, h, seed, out)
         print(f"  img_{i:02d}  {dur:5.2f}s  {'ok' if ok else 'MISSING'}  {sc['prompt'][:50]}")
         if ok:
             concat.append((os.path.abspath(out), dur))
