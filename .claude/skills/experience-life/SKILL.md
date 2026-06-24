@@ -156,6 +156,44 @@ Keep the STYLE string identical to the rest of the cast so they look like one
 world. The character bible is committed to the repo so it persists across the
 ephemeral web sessions.
 
+## Reusable intro animation + music bed
+
+The series has reusable, brandable assets in `assets/`:
+- `intro_bg.jpg` — a topic-agnostic dramatic background (silhouettes of many
+  lives under a spotlight) for the opening title.
+- `bgm_tense.mp3` — a royalty-free, synthesized **tense** music bed (drone +
+  heartbeat tick + throb), 60s, looped under any video.
+
+**Opening animation** (only the topic changes each episode): a Ken-Burns push
+over `intro_bg.jpg` with three title lines fading in, plus the catchphrase
+narration "带你体验一百种人生。今天，体验的人生是 <topic>。":
+```bash
+python3 .claude/skills/experience-life/scripts/make_intro.py \
+    --topic "饱和潜水员的一生" --size 1024x768 \
+    --out video_projects/<slug>/intro.mp4
+```
+
+**Compose** intro + main and lay the looped music bed under the whole film
+(narration side-chain-ducks the music — it swells in the intro/pauses and dips
+under speech):
+```bash
+python3 .claude/skills/experience-life/scripts/compose.py \
+    --clips video_projects/<slug>/intro.mp4 video_projects/<slug>/final.mp4 \
+    --music .claude/skills/experience-life/assets/bgm_tense.mp3 \
+    --size 1024x768 --out video_projects/<slug>/final_full.mp4
+```
+
+**Regenerate / re-style the assets** (they're reusable, so tweak once):
+```bash
+# a different tense bed (tempo, length)
+python3 .claude/skills/experience-life/scripts/make_music.py \
+    --duration 90 --bpm 132 --out .claude/skills/experience-life/assets/bgm_tense.mp3
+# a new branded intro background: generate via Pollinations into assets/intro_bg.jpg
+```
+`make_intro.py` and the music bed are series-level (reused verbatim); only the
+`--topic` and the per-episode main video change. Assets are committed to the
+repo so they survive the ephemeral web sessions.
+
 ## Tips
 
 - **Consistency** is the hard part of AI illustration. Lock the character with
