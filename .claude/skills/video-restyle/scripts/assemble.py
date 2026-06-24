@@ -49,6 +49,9 @@ def main() -> int:
     ap.add_argument("--audio", required=True)
     ap.add_argument("--srt", default=None)
     ap.add_argument("--images", default=None, help="folder of images for a slideshow")
+    ap.add_argument("--concat", default=None,
+                    help="pre-timed ffmpeg concat list (from make_slides.py); "
+                         "overrides --images, slides switch on its own timings")
     ap.add_argument("--size", default="1920x1080", help="WxH, e.g. 1080x1920 for vertical")
     ap.add_argument("--bg", default="0x0f172a", help="bg color when no images")
     ap.add_argument("--fps", type=int, default=30)
@@ -73,7 +76,19 @@ def main() -> int:
     scale_pad = (f"scale={w}:{h}:force_original_aspect_ratio=decrease,"
                  f"pad={w}:{h}:(ow-iw)/2:(oh-ih)/2:color={args.bg},setsar=1")
 
-    if images:
+    if args.concat:
+        vf = f"{scale_pad},fps={args.fps}{sub_filter}"
+        cmd = [
+            "ffmpeg", "-hide_banner", "-y",
+            "-f", "concat", "-safe", "0", "-i", args.concat,
+            "-i", args.audio,
+            "-vf", vf,
+            "-map", "0:v", "-map", "1:a",
+            "-c:v", "libx264", "-pix_fmt", "yuv420p", "-preset", "medium",
+            "-c:a", "aac", "-b:a", "192k", "-shortest", args.out,
+        ]
+        run(cmd)
+    elif images:
         per = max(dur / len(images), 0.5)
         listfile = tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False, encoding="utf-8")
         for img in images:
