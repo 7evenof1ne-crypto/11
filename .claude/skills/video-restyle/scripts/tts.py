@@ -28,8 +28,9 @@ async def synth(text, voice, rate, volume, mp3_path, srt_path):
         async for chunk in communicate.stream():
             if chunk["type"] == "audio":
                 audio.write(chunk["data"])
-            elif chunk["type"] == "WordBoundary":
-                # edge-tts 7.x: feed the whole boundary dict
+            elif chunk["type"] in ("WordBoundary", "SentenceBoundary"):
+                # Newer voices (incl. most zh-CN) emit SentenceBoundary instead
+                # of WordBoundary; either makes valid subtitle cues.
                 try:
                     submaker.feed(chunk)
                 except (AttributeError, TypeError):
