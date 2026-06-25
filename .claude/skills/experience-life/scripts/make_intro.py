@@ -41,8 +41,9 @@ def main():
     ap.add_argument("--topic", required=True)
     ap.add_argument("--bg", default=os.path.join(HERE, "..", "assets", "intro_bg.jpg"))
     ap.add_argument("--size", default="1024x768")
-    ap.add_argument("--voice", default="zh-CN-YunxiNeural")
-    ap.add_argument("--rate", default="+6%")
+    ap.add_argument("--voice", default="zh-CN-YunjianNeural")
+    ap.add_argument("--rate", default="+0%")
+    ap.add_argument("--pitch", default="-2Hz")
     ap.add_argument("--fps", type=int, default=30)
     ap.add_argument("--out", required=True)
     args = ap.parse_args()
@@ -55,8 +56,10 @@ def main():
     scriptf = os.path.join(workdir, "vo.txt")
     open(scriptf, "w", encoding="utf-8").write(vo_text)
     vo_base = os.path.join(workdir, "vo")
+    # use --opt=value form so negative rate/pitch (e.g. -4%) aren't parsed as flags
     subprocess.run(["python3", TTS, "--script", scriptf, "--out", vo_base,
-                    "--voice", args.voice, "--rate", args.rate], check=True)
+                    f"--voice={args.voice}", f"--rate={args.rate}",
+                    f"--pitch={args.pitch}"], check=True)
     vo_mp3 = vo_base + ".mp3"
     vo = dur_of(vo_mp3)
     dur = max(vo + 1.0, 5.0)

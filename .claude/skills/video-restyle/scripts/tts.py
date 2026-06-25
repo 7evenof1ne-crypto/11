@@ -19,10 +19,11 @@ import asyncio
 import sys
 
 
-async def synth(text, voice, rate, volume, mp3_path, srt_path):
+async def synth(text, voice, rate, volume, pitch, mp3_path, srt_path):
     import edge_tts
 
-    communicate = edge_tts.Communicate(text, voice, rate=rate, volume=volume)
+    communicate = edge_tts.Communicate(text, voice, rate=rate, volume=volume,
+                                       pitch=pitch)
     submaker = edge_tts.SubMaker()
     with open(mp3_path, "wb") as audio:
         async for chunk in communicate.stream():
@@ -56,6 +57,8 @@ def main() -> int:
     ap.add_argument("--voice", default="zh-CN-XiaoxiaoNeural")
     ap.add_argument("--rate", default="+0%", help="e.g. -10%, +15%")
     ap.add_argument("--volume", default="+0%")
+    ap.add_argument("--pitch", default="+0Hz",
+                    help="voice pitch, e.g. -2Hz (lower=heavier), +5Hz")
     args = ap.parse_args()
 
     with open(args.script, encoding="utf-8") as f:
@@ -66,7 +69,8 @@ def main() -> int:
 
     mp3, srt = args.out + ".mp3", args.out + ".srt"
     try:
-        asyncio.run(synth(text, args.voice, args.rate, args.volume, mp3, srt))
+        asyncio.run(synth(text, args.voice, args.rate, args.volume, args.pitch,
+                          mp3, srt))
     except Exception as e:  # noqa: BLE001
         msg = str(e)
         print(f"TTS failed: {msg}", file=sys.stderr)
