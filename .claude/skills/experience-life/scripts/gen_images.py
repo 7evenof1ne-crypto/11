@@ -114,15 +114,18 @@ def main():
                     f"(always the same person: {c['appearance']})")
 
         # a scene's primary character pins the seed (face stays locked across
-        # the whole account); otherwise vary the seed per scene for variety
+        # the whole account); otherwise vary the seed per scene for variety.
+        # "seed_offset" re-rolls a single bad/broken frame without touching the
+        # appearance lock or any other scene (deterministic, so good frames
+        # stay byte-identical on re-run).
         primary = sc.get("char")
         if primary and primary in chars:
-            seed = chars[primary]["seed"]
+            seed = chars[primary]["seed"] + int(sc.get("seed_offset", 0))
             if f"@{primary}" not in sc["prompt"]:  # ensure the lead is described
                 scene_text = (f"main character {chars[primary]['name']} "
                               f"({chars[primary]['appearance']}). " + scene_text)
         else:
-            seed = args.seed + i
+            seed = args.seed + i + int(sc.get("seed_offset", 0))
 
         prompt = f"{args.style}. Scene: {scene_text}"
         ok = fetch(prompt, w, h, seed, out)

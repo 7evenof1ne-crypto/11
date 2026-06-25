@@ -73,13 +73,16 @@ Work inside `video_projects/<slug>/` (gitignored).
    text, one idea per sentence — sentence breaks become subtitle cues AND
    scene boundaries).
 
-5. **Voiceover + subtitles** (reuses video-restyle's tts.py). A calm male
-   observer voice fits best:
+5. **Voiceover + subtitles** (reuses video-restyle's tts.py). **Series standard
+   narration voice = `zh-CN-YunxiNeural --rate=+2%`** — use this for every
+   episode (and the intro uses it by default) so the channel sounds consistent.
+   Note: pass negative rate/pitch with `=` (e.g. `--rate=-8%`) so argparse
+   doesn't read them as flags.
    ```bash
    python3 .claude/skills/video-restyle/scripts/tts.py \
        --script video_projects/<slug>/script.txt \
        --out   video_projects/<slug>/narration \
-       --voice zh-CN-YunxiNeural --rate +2%
+       --voice zh-CN-YunxiNeural --rate=+2%
    ```
 
 6. **Map scenes → image prompts.** Inspect `narration.srt` cue timings, then
@@ -142,7 +145,17 @@ python3 .claude/skills/experience-life/scripts/gen_images.py \
 ```
 - `"char": "<id>"` → uses that character's locked seed (face stays stable).
 - `@<id>` anywhere in a prompt → expands to the character's locked appearance.
+- `"seed_offset": N` → re-rolls just that one scene (e.g. to fix a broken
+  hand/limb) without touching the appearance lock or any other frame.
 - Scenes with no `char` fall back to the `--seed` + variety behaviour.
+
+**Fixing broken anatomy:** AI image models still mangle hands/limbs sometimes.
+To strictly fix a bad frame: (1) reframe the prompt to avoid the hard part —
+gloves, hands in pockets / at sides / out of frame, holding a simple object,
+upper-body crop; and (2) add `"seed_offset"` to re-roll until clean. Because
+seeds are deterministic, re-running regenerates ONLY the changed scenes and
+leaves the good frames byte-identical. Add `anatomically correct, natural
+proportions, correct hands, no deformed limbs` to the `--style`.
 
 **Add / edit a character:** append to `characters.json` (give it a unique seed
 and a detailed appearance), then regenerate its sheet to approve the look:
