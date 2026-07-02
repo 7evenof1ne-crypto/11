@@ -60,7 +60,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             continue
         a, b = (t2ass(x) for x in ln[1].split(" --> "))
         text = " ".join(ln[2:]).strip().replace("\n", r"\N")
-        if re.match(r"^\s*Level\s*\d", text, re.I):
+        # chapter markers: "Level 3" / "第三关" / "第3章" etc.
+        if re.match(r"^\s*(Level\s*\d|第[一二三四五六七八九十百\d]+[关章幕])", text, re.I):
             lines.append(f"Dialogue: 0,{a},{b},Chapter,,0,0,0,,{chap_fx}{text}")
         else:
             lines.append(f"Dialogue: 0,{a},{b},Body,,0,0,0,,{body_fx}{text}")
