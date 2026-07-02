@@ -162,6 +162,15 @@ python3 .claude/skills/experience-life/scripts/gen_images.py \
   hand/limb) without touching the appearance lock or any other frame.
 - Scenes with no `char` fall back to the `--seed` + variety behaviour.
 
+**Re-aging the locked cast:** the appearance fragments describe the ADULT
+character, so teen/child/elderly scenes can drift (wrong hair, period costume)
+if you just write "@ahai as a 16-year-old". For strong age shifts, restate the
+signature features inline — "a 16-year-old teenage boy who is the young version
+of @ahai with the SAME facial features: short slightly messy black hair, thick
+straight eyebrows, calm single-eyelid eyes, modern plain clothes" — and for
+distant/silhouette shots DROP the `char` lock entirely (the injected appearance
+would fight the prompt, e.g. black hair overriding a white-haired old man).
+
 **Fixing broken anatomy:** AI image models still mangle hands/limbs sometimes.
 To strictly fix a bad frame: (1) reframe the prompt to avoid the hard part —
 gloves, hands in pockets / at sides / out of frame, holding a simple object,
