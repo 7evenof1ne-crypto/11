@@ -177,9 +177,25 @@ The series has reusable, brandable assets in `assets/`:
 - `bgm_tense.mp3` — a royalty-free, synthesized **tense** music bed (drone +
   heartbeat tick + throb), 60s, looped under any video.
 
-**Opening animation** (only the topic changes each episode): a Ken-Burns push
-over `intro_bg.jpg` with three title lines fading in, plus the catchphrase
-narration "带你体验一百种人生。今天，体验的人生是 <topic>。":
+**Opening animation — carousel (preferred).** A stack of "life covers"
+(`assets/covers/*.jpg`, ~8 dramatic poster illustrations of different lives)
+flicks past at ~0.4s/cover with a synthesized whoosh + white flash on every
+cut, then slams (impact hit) onto THIS episode's cover where the golden title
+and the catchphrase narration land. Per episode only `--topic` and
+`--final-cover` change; everything else is reused:
+```bash
+python3 .claude/skills/experience-life/scripts/make_intro_carousel.py \
+    --topic "饱和潜水员的一生" \
+    --final-cover .claude/skills/experience-life/assets/covers/diver.jpg \
+    --size 1024x768 --out video_projects/<slug>/intro.mp4
+```
+For a new episode whose life isn't in the covers yet, generate one poster-style
+cover via Pollinations into `assets/covers/<life>.jpg` (it then also enriches
+the flicker pool for future episodes). All switch sounds are synthesized
+locally by the script — no sample files needed.
+
+**Opening animation — simple (fallback):** a single Ken-Burns push over
+`intro_bg.jpg` with three fading title lines:
 ```bash
 python3 .claude/skills/experience-life/scripts/make_intro.py \
     --topic "饱和潜水员的一生" --size 1024x768 \
