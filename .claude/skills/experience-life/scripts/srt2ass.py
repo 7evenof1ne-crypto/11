@@ -53,13 +53,29 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     chap_fx = (r"{\fad(160,160)\blur6\fscx70\fscy70"
                r"\t(0,220,\fscx104\fscy104)\t(220,340,\fscx100\fscy100)}")
 
+    # libass may not line-break spaceless CJK text on its own — wrap manually.
+    max_chars = max(10, int((w - 100) / fs))
+
+    def wrap(text):
+        if len(text) <= max_chars:
+            return text
+        mid = len(text) // 2
+        puncts = [i for i, ch in enumerate(text) if ch in "，。！？、；：,"]
+        if puncts:
+            cut = min(puncts, key=lambda i: abs(i - mid)) + 1
+            if cut >= len(text):
+                cut = mid
+        else:
+            cut = mid
+        return wrap(text[:cut]) + r"\N" + wrap(text[cut:])
+
     lines = []
     for block in open(args.srt, encoding="utf-8").read().strip().split("\n\n"):
         ln = block.split("\n")
         if len(ln) < 2 or "-->" not in ln[1]:
             continue
         a, b = (t2ass(x) for x in ln[1].split(" --> "))
-        text = " ".join(ln[2:]).strip().replace("\n", r"\N")
+        text = wrap(" ".join(ln[2:]).strip())
         # chapter markers: "Level 3" / "第三关" / "第3章" etc.
         if re.match(r"^\s*(Level\s*\d|第[一二三四五六七八九十百\d]+[关章幕])", text, re.I):
             lines.append(f"Dialogue: 0,{a},{b},Chapter,,0,0,0,,{chap_fx}{text}")
