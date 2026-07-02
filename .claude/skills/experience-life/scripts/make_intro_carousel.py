@@ -126,31 +126,45 @@ def main():
         f"eq=brightness=-0.06:saturation=0.95,vignette=PI/4.5,setsar=1[vl];")
     parts.append("".join(f"[v{i}]" for i in range(n)) + f"[vl]concat=n={n + 1}:v=1[cat];")
 
-    # white flash frame on every cut (fades in 2 frames) + titles on landing
-    def tfile(name, text):
-        p = os.path.join(tmp, name)
-        open(p, "w", encoding="utf-8").write(text)
-        return p
-    l1 = tfile("l1.txt", "带你体验一百种人生")
-    l2 = tfile("l2.txt", "今天，体验的人生是")
-    l3 = tfile("l3.txt", f"《{args.topic}》")
-    fs, fb = max(20, int(w * 0.050)), max(28, int(w * 0.075))
+    # white flash frame on every cut + animated ASS titles (rise/fade/pop/glow)
     t2 = t_land + 0.15
     t3 = max(t2 + 0.9, vo_d * 0.74)
+    fs, fb = max(22, int(h * 0.055)), max(30, int(h * 0.088))
+
+    def ass_t(sec):
+        m, s = divmod(max(0.0, sec), 60)
+        return f"0:{int(m):02d}:{int(s):05.2f}"
+
+    cx = w // 2
+    y1, y2, y3 = int(h * 0.26), int(h * 0.40), int(h * 0.56)
+    end = ass_t(total)
+    ass = f"""[Script Info]
+ScriptType: v4.00+
+PlayResX: {w}
+PlayResY: {h}
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Top,WenQuanYi Zen Hei,{fs},&H00FFFFFF,&H00FFFFFF,&H00101010,&H96000000,-1,0,0,0,100,100,4,0,1,3,0,8,20,20,0,1
+Style: Mid,WenQuanYi Zen Hei,{fs},&H00E8E8E8,&H00FFFFFF,&H00101010,&H96000000,-1,0,0,0,100,100,2,0,1,3,0,8,20,20,0,1
+Style: Title,WenQuanYi Zen Hei,{fb},&H006BD5FF,&H00FFFFFF,&H00081018,&H96000000,-1,0,0,0,100,100,1,0,1,4,0,8,20,20,0,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,{ass_t(0.35)},{end},Top,,0,0,0,,{{\\fad(240,0)\\blur4\\move({cx},{y1 + 26},{cx},{y1},0,300)}}带你体验一百种人生
+Dialogue: 0,{ass_t(t2)},{end},Mid,,0,0,0,,{{\\fad(200,0)\\blur4\\move({cx},{y2 + 26},{cx},{y2},0,280)}}今天，体验的人生是
+Dialogue: 1,{ass_t(t3)},{end},Title,,0,0,0,,{{\\fad(170,0)\\blur5\\pos({cx},{y3})\\fscx60\\fscy60\\t(0,260,\\fscx108\\fscy108)\\t(260,420,\\fscx100\\fscy100)}}《{args.topic}》
+"""
+    ass_path = os.path.join(tmp, "intro.ass")
+    open(ass_path, "w", encoding="utf-8").write(ass)
 
     flash = "+".join(
         f"0.85*exp(-18*(t-{cut * k:.3f}))*between(t,{cut * k:.3f},{cut * k + 0.30:.3f})"
         for k in range(1, n + 1))
-    def dt(tf_, size, color, ypos, t0):
-        return (f"drawtext=fontfile='{FONT}':textfile='{tf_}':fontsize={size}:"
-                f"fontcolor={color}:borderw={max(3, size // 14)}:bordercolor=black@0.85:"
-                f"shadowx=2:shadowy=2:shadowcolor=black@0.6:"
-                f"x=(w-text_w)/2:y={ypos}:alpha='clip((t-{t0})/0.6,0,1)'")
     parts.append(
         f"[cat]eq=brightness='{flash}':eval=frame,"
-        + dt(l1, fs, "white", f"{h}*0.26", 0.35) + ","
-        + dt(l2, fs, "white", f"{h}*0.40", t2) + ","
-        + dt(l3, fb, "0xFFD56B", f"{h}*0.54", t3) + ",format=yuv420p[v];")
+        f"subtitles='{ass_path}',format=yuv420p[v];")
 
     # --- audio mix: narration + whooshes at cuts + impact at landing -------
     amix = [f"[{n + 1}:a]volume=1.0[a_vo];"]

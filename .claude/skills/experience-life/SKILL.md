@@ -103,6 +103,19 @@ Work inside `video_projects/<slug>/` (gitignored).
    A fixed `--seed` + a consistent character description keeps the cast stable.
    Re-run a single bad scene by tweaking its prompt and bumping its seed.
 
+7.5 **Animated subtitles.** Convert the .srt into a modern animated .ass track
+   before assembling — soft glow instead of a hard 90s outline, per-line fade +
+   subtle pop, and any cue starting with "Level" automatically becomes a golden
+   screen-centered chapter stinger:
+   ```bash
+   python3 .claude/skills/experience-life/scripts/srt2ass.py \
+       --srt video_projects/<slug>/narration.srt --size 1024x768 \
+       --out video_projects/<slug>/narration.ass
+   ```
+   Then pass the `.ass` to assemble.py's `--srt` (it detects the extension and
+   uses the embedded styling). The carousel intro uses the same animated title
+   language (rise/fade/pop/glow), so the whole film reads as one design.
+
 8. **Assemble** (reuses video-restyle's assemble.py `--concat`, burns subs):
    ```bash
    python3 .claude/skills/video-restyle/scripts/assemble.py \

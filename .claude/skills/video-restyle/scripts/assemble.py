@@ -69,9 +69,13 @@ def main() -> int:
 
     sub_filter = ""
     if args.srt and os.path.exists(args.srt) and os.path.getsize(args.srt) > 0:
-        style = ("FontSize=18,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,"
-                 "BorderStyle=1,Outline=2,Shadow=1,MarginV=60,Alignment=2")
-        sub_filter = f",subtitles='{esc_sub(args.srt)}':force_style='{style}'"
+        if args.srt.lower().endswith(".ass"):
+            # styled/animated track (e.g. from srt2ass.py) — style lives inside
+            sub_filter = f",subtitles='{esc_sub(args.srt)}'"
+        else:
+            style = ("FontSize=18,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,"
+                     "BorderStyle=1,Outline=2,Shadow=1,MarginV=60,Alignment=2")
+            sub_filter = f",subtitles='{esc_sub(args.srt)}':force_style='{style}'"
 
     scale_pad = (f"scale={w}:{h}:force_original_aspect_ratio=decrease,"
                  f"pad={w}:{h}:(ow-iw)/2:(oh-ih)/2:color={args.bg},setsar=1")
